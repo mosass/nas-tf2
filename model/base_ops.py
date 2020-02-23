@@ -10,7 +10,7 @@ class Conv3x3BnRelu(tf.keras.Model):
       strides=(1,1),
       padding='same',
       use_bias=False,
-      kernel_initializer='variance_scaling'
+      kernel_initializer='VarianceScaling'
     )
     self.bn = tf.keras.layers.BatchNormalization(
       axis=3,
@@ -34,7 +34,7 @@ class Conv1x1BnRelu(tf.keras.Model):
       strides=(1,1),
       padding='same',
       use_bias=False,
-      kernel_initializer='variance_scaling'
+      kernel_initializer='VarianceScaling'
     )
     self.bn = tf.keras.layers.BatchNormalization(
       axis=3,
@@ -47,6 +47,10 @@ class Conv1x1BnRelu(tf.keras.Model):
     x = self.conv(inputs)
     x1 = self.bn(x)
     return self.relu(x1)
+
+class Projection(Conv1x1BnRelu):
+  def __init__(self, filters):
+    super(Projection, self).__init__(filters)
 
 class MaxPool3x3(tf.keras.Model):
 

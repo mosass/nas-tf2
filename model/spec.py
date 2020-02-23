@@ -45,6 +45,9 @@ class Spec(object):
     self.valid_spec = True
     self._prune()
 
+    if np.sum(self.matrix) > MAX_EDGES:
+      self.valid_spec = False
+
   def _prune(self):
     """Prune the extraneous parts of the graph.
 

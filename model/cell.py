@@ -9,19 +9,39 @@ class Cell(tf.keras.Model):
     self.spec = spec
     self.channels = channels
 
+    input_channels = channels
+    self.node_channels = self.compute_vertex_channels(input_channels, self.channels, self.spec.matrix)
+    self.number_of_node = len(self.node_channels)
+
+    self.node = [ops.OP_MAP[self.spec.ops[v]](self.node_channels[v])
+            for v in range(1, self.number_of_node - 1)]
+
   def call(self, inputs):
-    input_channels = inputs.output_shape[3]
-    vertex_channels = self.compute_vertex_channels(input_channels, self.channels, self.spec.matrix)
-
-    node = [ops.OP_MAP[self.spec.ops[v]](vertex_channels[v])
-            for v in range(1, len(vertex_channels) - 1)]
-
-    for v in range(1, len(vertex_channels) - 1):
-      pass
+    tensors = [inputs]
+    concat_out = []
+    for t in range(1, self.number_of_node - 1):
+      add_in = [self.truncate(tensors[s], self.node_channels[t]) for s in range(1, t) if self.spec.matrix[s,t]]
       
-    
+      if self.spec.matrix[0, t]:
+        p_input = ops.Projection(self.node_channels[t]).call(tensors[0])
+        add_in.append(p_input)
+      
+      if len(add_in) == 1:
+        added = add_in[0]
+      else:
+        added = tf.keras.layers.Add()(add_in)
+      tensors.append(self.node[t-1].call(added))
+      
+      if self.spec.matrix[t, -1]:
+        concat_out.append(tensors[t])
 
-    return inputs
+    if not concat_out:
+      assert self.spec.matrix[0, -1]
+      output = ops.Projection(self.node_channels[-1]).call(tensors[0])
+    else:
+      output = tf.keras.layers.Concatenate(axis=-1)(concat_out)
+
+    return output
 
   def compute_vertex_channels(self, input_channels, output_channels, matrix):
     """Computes the number of channels at every vertex.
@@ -89,3 +109,18 @@ class Cell(tf.keras.Model):
     # num_vertices == 2 means only input/output nodes, so 0 fan-in
 
     return vertex_channels
+
+  def truncate(self, inputs, channels):
+    """Slice the inputs to channels if necessary."""
+    input_channels = inputs.get_shape()[3]
+
+    if input_channels < channels:
+      raise ValueError('input channel < output channels for truncate')
+    elif input_channels == channels:
+      return inputs   # No truncation necessary
+    else:
+      # Truncation should only be necessary when channel division leads to
+      # vertices with +1 channels. The input vertex should always be projected to
+      # the minimum channel count.
+      assert input_channels - channels == 1
+      return tf.slice(inputs, [0, 0, 0, 0], [-1, -1, -1, channels])

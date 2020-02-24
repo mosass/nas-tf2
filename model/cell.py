@@ -3,7 +3,7 @@ import model.base_ops as ops
 import model.spec as spec
 import numpy as np
 
-class Cell(tf.keras.Model):
+class Cell(object):
   def __init__(self, spec: spec.Spec, channels):
     super(Cell, self).__init__()
     self.spec = spec
@@ -13,33 +13,32 @@ class Cell(tf.keras.Model):
     self.node_channels = self.compute_vertex_channels(input_channels, self.channels, self.spec.matrix)
     self.number_of_node = len(self.node_channels)
 
-    self.node = [ops.OP_MAP[self.spec.ops[v]](self.node_channels[v])
-            for v in range(1, self.number_of_node - 1)]
-
-  def call(self, inputs):
+  def build(self, inputs):
     tensors = [inputs]
     concat_out = []
     for t in range(1, self.number_of_node - 1):
       add_in = [self.truncate(tensors[s], self.node_channels[t]) for s in range(1, t) if self.spec.matrix[s,t]]
       
       if self.spec.matrix[0, t]:
-        p_input = ops.Projection(self.node_channels[t]).call(tensors[0])
+        p_input = ops.Projection().build(self.node_channels[t], tensors[0])
         add_in.append(p_input)
       
       if len(add_in) == 1:
         added = add_in[0]
       else:
         added = tf.keras.layers.Add()(add_in)
-      tensors.append(self.node[t-1].call(added))
+      
+      node = ops.OP_MAP[self.spec.ops[t]]().build(self.node_channels[t], added)
+      tensors.append(node)
       
       if self.spec.matrix[t, -1]:
         concat_out.append(tensors[t])
 
     if not concat_out:
       assert self.spec.matrix[0, -1]
-      output = ops.Projection(self.node_channels[-1]).call(tensors[0])
+      output = ops.Projection().build(self.node_channels[-1], tensors[0])
     else:
-      output = tf.keras.layers.Concatenate(axis=-1)(concat_out)
+      output = concat_out[0] if len(concat_out) == 1 else tf.keras.layers.Concatenate(axis=-1)(concat_out)
 
     return output
 

@@ -1,20 +1,22 @@
 import tensorflow as tf
-import model.base_ops as ops
-import model.spec as spec
+import lib.base_ops as ops
+import lib.spec as spec
 import numpy as np
 
 class Cell(object):
-  def __init__(self, spec: spec.Spec, channels):
+  def __init__(self, spec: spec.Spec, channels, inputs):
     super(Cell, self).__init__()
     self.spec = spec
     self.channels = channels
+    self.inputs = inputs
 
-    input_channels = channels
+    input_channels = inputs.get_shape()[3]
     self.node_channels = self.compute_vertex_channels(input_channels, self.channels, self.spec.matrix)
     self.number_of_node = len(self.node_channels)
 
-  def build(self, inputs):
-    tensors = [inputs]
+  def build(self, name=""):
+    self.name = name
+    tensors = [self.inputs]
     concat_out = []
     for t in range(1, self.number_of_node - 1):
       add_in = [self.truncate(tensors[s], self.node_channels[t]) for s in range(1, t) if self.spec.matrix[s,t]]

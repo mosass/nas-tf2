@@ -4,8 +4,9 @@ import lib.spec as spec
 import numpy as np
 
 class Cell(object):
-  def __init__(self, spec: spec.Spec, channels, inputs):
+  def __init__(self, spec: spec.Spec, channels, inputs, name=""):
     super(Cell, self).__init__()
+    self.name = name
     self.spec = spec
     self.channels = channels
     self.inputs = inputs
@@ -14,8 +15,7 @@ class Cell(object):
     self.node_channels = self.compute_vertex_channels(input_channels, self.channels, self.spec.matrix)
     self.number_of_node = len(self.node_channels)
 
-  def build(self, name=""):
-    self.name = name
+  def build(self):
     tensors = [self.inputs]
     concat_out = []
     for t in range(1, self.number_of_node - 1):

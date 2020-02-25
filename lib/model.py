@@ -71,7 +71,7 @@ class NModel(object):
     
     time_his = TimeHistory()
     
-    history = self.model.fit(train_images, train_labels, epochs=1, batch_size=256,
+    history = self.model.fit(train_images, train_labels, epochs=12, batch_size=256,
                   callbacks=[time_his],
                   validation_data=(validate_images, validate_labels))
     evaluate = self.model.evaluate(test_images, test_labels)

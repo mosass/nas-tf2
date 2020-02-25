@@ -205,11 +205,11 @@ def regularized_evolution(cycles, population_size, sample_size, output_path):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--run_id', default=0, type=int, nargs='?', help='unique number to identify this run')
-parser.add_argument('--n_iters', default=5, type=int, nargs='?', help='number of iterations for optimization method')
+parser.add_argument('--n_iters', default=40, type=int, nargs='?', help='number of iterations for optimization method')
 parser.add_argument('--output_path', default="./out", type=str, nargs='?',
                     help='specifies the path where the results will be saved')
-parser.add_argument('--pop_size', default=3, type=int, nargs='?', help='population size')
-parser.add_argument('--sample_size', default=1, type=int, nargs='?', help='sample_size')
+parser.add_argument('--pop_size', default=20, type=int, nargs='?', help='population size')
+parser.add_argument('--sample_size', default=2, type=int, nargs='?', help='sample_size')
 
 
 args = parser.parse_args()

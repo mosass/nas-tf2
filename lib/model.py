@@ -5,7 +5,6 @@ import lib.base_ops as ops
 import numpy as np
 import time
 
-
 class Stack(object):
   def __init__(self, spec: Spec, inputs, name=""):
     super(Stack, self).__init__()
@@ -27,11 +26,11 @@ class Stack(object):
     return tensors
 
 class NModel(object):
-  def __init__(self, spec: Spec, inputs, name=""):
+  def __init__(self, spec: Spec, name=""):
     super(NModel, self).__init__()
     self.name = name
     self.spec = spec
-    self.inputs = inputs
+    self.inputs = tf.keras.Input(shape=(32, 32, 3))
     self.stem = tf.keras.layers.Conv2D(
       filters=128,
       kernel_size=(3,3),
@@ -72,7 +71,7 @@ class NModel(object):
     
     time_his = TimeHistory()
     
-    history = self.model.fit(train_images, train_labels, epochs=4, batch_size=256,
+    history = self.model.fit(train_images, train_labels, epochs=1, batch_size=256,
                   callbacks=[time_his],
                   validation_data=(validate_images, validate_labels))
     evaluate = self.model.evaluate(test_images, test_labels)

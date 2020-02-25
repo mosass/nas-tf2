@@ -25,6 +25,27 @@ import numpy as np
 from lib.spec import Spec
 from lib.model import NModel
 
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return super(NpEncoder, self).default(obj)
+
+def save_file_his(hist, output_path, idx, cycle=False):
+    ls_his = [m.get_dict() for m in hist]
+    if cycle:
+        fh = open(os.path.join(output_path, 'cycle_%d.json' % idx), 'w')
+    else:
+        fh = open(os.path.join(output_path, 'run_%d.json' % idx), 'w')
+    json.dump(ls_his, fh, cls=NpEncoder)
+    fh.close()
+
+
 class Model(object):
     """A class representing a model.
 
@@ -148,12 +169,8 @@ def regularized_evolution(cycles, population_size, sample_size, output_path):
         population.append(model)
         history.append(model)
 
-    ls_his = [m.get_dict() for m in history]
     c = 0
-    os.makedirs(os.path.join(output_path), exist_ok=True)
-    fh = open(os.path.join(output_path, 'cycle_%d.json' % c), 'w')
-    json.dump(ls_his, fh)
-
+    save_file_his(history, output_path, c, cycle=True)
     # Carry out evolution in cycles. Each cycle produces a model and removes
     # another.
     while len(history) < cycles:
@@ -179,20 +196,18 @@ def regularized_evolution(cycles, population_size, sample_size, output_path):
         # Remove the oldest model.
         population.popleft()
 
-        ls_his = [m.get_dict() for m in history]
-        fh = open(os.path.join(output_path, 'cycle_%d.json' % c), 'w')
-        json.dump(ls_his, fh)
+        save_file_his(history, output_path, c, cycle=True)
 
     return history
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--run_id', default=0, type=int, nargs='?', help='unique number to identify this run')
-parser.add_argument('--n_iters', default=10, type=int, nargs='?', help='number of iterations for optimization method')
+parser.add_argument('--n_iters', default=5, type=int, nargs='?', help='number of iterations for optimization method')
 parser.add_argument('--output_path', default="./out", type=str, nargs='?',
                     help='specifies the path where the results will be saved')
-parser.add_argument('--pop_size', default=4, type=int, nargs='?', help='population size')
-parser.add_argument('--sample_size', default=2, type=int, nargs='?', help='sample_size')
+parser.add_argument('--pop_size', default=3, type=int, nargs='?', help='population size')
+parser.add_argument('--sample_size', default=1, type=int, nargs='?', help='sample_size')
 
 
 args = parser.parse_args()
@@ -205,7 +220,4 @@ history = regularized_evolution(
     cycles=args.n_iters, population_size=args.pop_size, sample_size=args.sample_size,
     output_path=output_path)
 
-ls_his = [m.get_dict() for m in history]
-fh = open(os.path.join(output_path, 'run_%d.json' % args.run_id), 'w')
-json.dump(ls_his, fh)
-fh.close()
+save_file_his(history, output_path, args.run_id)

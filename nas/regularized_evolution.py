@@ -102,6 +102,7 @@ def train_and_eval(model):
     spec = Spec(model.arch)
     if spec.valid_spec == False:
         model.accuracy = -1
+        return
     
     net = NModel(spec)
     net.build()
@@ -196,6 +197,7 @@ def regularized_evolution(cycles, population_size, sample_size, output_path):
         # Remove the oldest model.
         population.popleft()
 
+        c += 1
         save_file_his(history, output_path, c, cycle=True)
 
     return history

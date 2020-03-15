@@ -24,96 +24,9 @@ import ConfigSpace
 import numpy as np
 from lib.spec import Spec
 from lib.model import NModel
-
-class NpEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        else:
-            return super(NpEncoder, self).default(obj)
-
-def save_file_his(hist, output_path, idx, cycle=False):
-    ls_his = [m.get_dict() for m in hist]
-    if cycle:
-        fh = open(os.path.join(output_path, 'cycle_%d.json' % idx), 'w')
-    else:
-        fh = open(os.path.join(output_path, 'run_%d.json' % idx), 'w')
-    json.dump(ls_his, fh, cls=NpEncoder)
-    fh.close()
-
-
-class Model(object):
-    """A class representing a model.
-
-    It holds two attributes: `arch` (the simulated architecture) and `accuracy`
-    (the simulated accuracy / fitness). See Appendix C for an introduction to
-    this toy problem.
-
-    In the real case of neural networks, `arch` would instead hold the
-    architecture of the normal and reduction cells of a neural network and
-    accuracy would be instead the result of training the neural net and
-    evaluating it on the validation set.
-
-    We do not include test accuracies here as they are not used by the algorithm
-    in any way. In the case of real neural networks, the test accuracy is only
-    used for the purpose of reporting / plotting final results.
-
-    In the context of evolutionary algorithms, a model is often referred to as
-    an "individual".
-
-    Attributes:  (as in the original code)
-      arch: the architecture as an int representing a bit-string of length `DIM`.
-          As a result, the integers are required to be less than `2**DIM`. They
-          can be visualized as strings of 0s and 1s by calling `print(model)`,
-          where `model` is an instance of this class.
-      accuracy:  the simulated validation accuracy. This is the sum of the
-          bits in the bit-string, divided by DIM to produce a value in the
-          interval [0.0, 1.0]. After that, a small amount of Gaussian noise is
-          added with mean 0.0 and standard deviation `NOISE_STDEV`. The resulting
-          number is clipped to within [0.0, 1.0] to produce the final validation
-          accuracy of the model. A given model will have a fixed validation
-          accuracy but two models that have the same architecture will generally
-          have different validation accuracies due to this noise. In the context
-          of evolutionary algorithms, this is often known as the "fitness".
-    """
-
-    def __init__(self):
-        self.arch = None
-        self.accuracy = None
-        self.data = None
-
-    def __str__(self):
-        """Prints a readable version of this bitstring."""
-        return str(self.arch)
-    
-    def get_dict(self):
-        return {
-            "arch": self.arch.get_dictionary(),
-            "accuracy": self.accuracy,
-            "data": self.data
-        }
-
-
-def train_and_eval(model):
-    spec = Spec(model.arch)
-    if spec.valid_spec == False:
-        model.accuracy = -1
-        return
-    
-    net = NModel(spec)
-    net.build()
-    data = net.train_and_evaluate()
-
-    model.accuracy = -1 + data["validation_accuracy"]
-    model.data = data
-    
-    # y, cost = b.objective_function(config)
-    # returns negative error (similar to maximizing accuracy)
-    # return -y
+from nas.nasbase import NasBase
+from nas.nasbase import Model
+from datetime import datetime
 
 
 def random_architecture():
@@ -160,19 +73,18 @@ def regularized_evolution(cycles, population_size, sample_size, output_path):
           during the evolution experiment.
     """
     population = collections.deque()
-    history = []  # Not used by the algorithm, only used to report results.
     c = 0
+    nas = NasBase()
 
     # Initialize the population with random models.
     while len(population) < population_size:
         model = Model()
         model.arch = random_architecture()
-        train_and_eval(model)
+        nas.train_and_eval(model)
         population.append(model)
-        history.append(model)
 
         if len(population) % 5 == 0:
-            save_file_his(history, output_path, c, cycle=True)
+            nas.save_state(output_path, c)
 
     # Carry out evolution in cycles. Each cycle produces a model and removes
     # another.
@@ -192,21 +104,20 @@ def regularized_evolution(cycles, population_size, sample_size, output_path):
         # Create the child model and store it.
         child = Model()
         child.arch = mutate_arch(parent.arch)
-        train_and_eval(child)
+        nas.train_and_eval(child)
         population.append(child)
-        history.append(child)
 
         # Remove the oldest model.
         population.popleft()
 
         c += 1
-        save_file_his(history, output_path, c, cycle=True)
+        nas.save_state(output_path, c)
 
     return history
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--run_id', default=0, type=int, nargs='?', help='unique number to identify this run')
+parser.add_argument('--run_id', default="", type=int, nargs='?', help='unique number to identify this run')
 parser.add_argument('--n_iters', default=105, type=int, nargs='?', help='number of iterations for optimization method')
 parser.add_argument('--output_path', default="./out", type=str, nargs='?',
                     help='specifies the path where the results will be saved')
@@ -217,11 +128,15 @@ parser.add_argument('--sample_size', default=10, type=int, nargs='?', help='samp
 args = parser.parse_args()
 
 output_path = os.path.join(args.output_path, "regularized_evolution")
-output_path = os.path.join(output_path, str(args.run_id))
+if len(args.run_id) == 0:
+    now = datetime.now()
+    date_time = now.strftime("%m%d%Y%H%M%S")
+    output_path = os.path.join(output_path, date_time)
+else:
+    output_path = os.path.join(output_path, str(args.run_id))
+
 os.makedirs(os.path.join(output_path), exist_ok=True)
 
 history = regularized_evolution(
     cycles=args.n_iters, population_size=args.pop_size, sample_size=args.sample_size,
     output_path=output_path)
-
-save_file_his(history, output_path, args.run_id)

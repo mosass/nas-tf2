@@ -4,6 +4,36 @@ import tensorflow as tf
 from lib.model import NModel
 from lib.spec import Spec
 from datetime import datetime
+import json
+import os
+
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return super(NpEncoder, self).default(obj)
+
+class Model(object):
+    def __init__(self):
+        self.arch = None
+        self.data = None
+        self.accuracy = None
+
+    def __str__(self):
+        """Prints a readable version of this bitstring."""
+        return str(self.arch)
+    
+    def get_dict(self):
+        return {
+            "arch": self.arch.get_dictionary(),
+            "accuracy": self.accuracy,
+            "data": self.data
+        }
 
 class NasBase(object):
 
@@ -38,7 +68,7 @@ class NasBase(object):
 
     def save_state(self, output_path, state_id):
         now = datetime.now()
-        date_time = now.strftime("%m%d%Y%H%M%S")
+        date_time = now.strftime("%Y%m%d%H%M%S")
         self.save_file_his(output_path, state_id, date_time)
         self.save_file_state(output_path, state_id, date_time)
 
@@ -56,34 +86,3 @@ class NasBase(object):
         fh = open(os.path.join(output_path, 'state_%s_%s.json' % (idx, timestamp)), 'w')
         json.dump(ls_state, fh, cls=NpEncoder)
         fh.close()
-
-
-class NpEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        else:
-            return super(NpEncoder, self).default(obj)
-
-
-
-class Model(object):
-    def __init__(self):
-        self.arch = None
-        self.data = None
-        self.accuracy = None
-
-    def __str__(self):
-        """Prints a readable version of this bitstring."""
-        return str(self.arch)
-    
-    def get_dict(self):
-        return {
-            "arch": self.arch.get_dictionary(),
-            "accuracy": self.accuracy,
-            "data": self.data
-        }

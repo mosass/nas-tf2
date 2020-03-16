@@ -17,7 +17,6 @@ import argparse
 import collections
 import os
 import random
-import json
 from copy import deepcopy
 
 import ConfigSpace
@@ -88,7 +87,7 @@ def regularized_evolution(cycles, population_size, sample_size, output_path):
 
     # Carry out evolution in cycles. Each cycle produces a model and removes
     # another.
-    while len(history) < cycles:
+    while len(nas.history) < cycles:
         # Sample randomly chosen models from the current population.
         sample = []
         while len(sample) < sample_size:
@@ -113,12 +112,12 @@ def regularized_evolution(cycles, population_size, sample_size, output_path):
         c += 1
         nas.save_state(output_path, c)
 
-    return history
+    return nas.history
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--run_id', default="", type=int, nargs='?', help='unique number to identify this run')
-parser.add_argument('--n_iters', default=105, type=int, nargs='?', help='number of iterations for optimization method')
+parser.add_argument('--run_id', default="", type=str, nargs='?', help='unique id to identify this run')
+parser.add_argument('--n_iters', default=115, type=int, nargs='?', help='number of iterations for optimization method')
 parser.add_argument('--output_path', default="./out", type=str, nargs='?',
                     help='specifies the path where the results will be saved')
 parser.add_argument('--pop_size', default=100, type=int, nargs='?', help='population size')
@@ -130,7 +129,7 @@ args = parser.parse_args()
 output_path = os.path.join(args.output_path, "regularized_evolution")
 if len(args.run_id) == 0:
     now = datetime.now()
-    date_time = now.strftime("%m%d%Y%H%M%S")
+    date_time = now.strftime("%Y%m%d%H%M%S")
     output_path = os.path.join(output_path, date_time)
 else:
     output_path = os.path.join(output_path, str(args.run_id))

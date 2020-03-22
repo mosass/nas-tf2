@@ -40,10 +40,8 @@ def mutate_arch(parent_arch):
     dim = np.random.randint(len(cs.get_hyperparameters()))
     hyper = cs.get_hyperparameters()[dim]
 
-    if type(hyper) == ConfigSpace.OrdinalHyperparameter:
-        choices = list(hyper.sequence)
-    else:
-        choices = list(hyper.choices)
+    choices = list(hyper.choices)
+
     # drop current values from potential choices
     choices.remove(parent_arch[hyper.name])
 
@@ -53,7 +51,6 @@ def mutate_arch(parent_arch):
     child_arch = deepcopy(parent_arch)
     child_arch[hyper.name] = choices[idx]
     return child_arch
-
 
 def regularized_evolution(cycles, population_size, sample_size, output_path):
     """Algorithm for regularized evolution (i.e. aging evolution).
@@ -117,10 +114,10 @@ def regularized_evolution(cycles, population_size, sample_size, output_path):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--run_id', default="", type=str, nargs='?', help='unique id to identify this run')
-parser.add_argument('--n_iters', default=115, type=int, nargs='?', help='number of iterations for optimization method')
+parser.add_argument('--n_iters', default=65, type=int, nargs='?', help='number of iterations for optimization method')
 parser.add_argument('--output_path', default="./out", type=str, nargs='?',
                     help='specifies the path where the results will be saved')
-parser.add_argument('--pop_size', default=100, type=int, nargs='?', help='population size')
+parser.add_argument('--pop_size', default=50, type=int, nargs='?', help='population size')
 parser.add_argument('--sample_size', default=10, type=int, nargs='?', help='sample_size')
 
 

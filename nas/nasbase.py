@@ -46,11 +46,17 @@ class NasBase(object):
         spec = Spec(model.arch)
         if spec.valid_spec == False:
             model.accuracy = -1
-            return
-        
-        net = NModel(spec)
-        net.build()
-        data = net.train_and_evaluate()
+            return model
+
+        try:
+            net = NModel(spec)
+            net.build()
+            data = net.train_and_evaluate()
+        except Exception as ex:
+            print(ex)
+            model.accuracy = -1
+            return model
+
         self.times.append(self.times[-1] + data["training_time"])
         model.data = data
         model.accuracy = self.calc_accuracy(data)

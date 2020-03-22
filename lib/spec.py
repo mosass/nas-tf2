@@ -19,7 +19,7 @@ class Spec(object):
     cs.add_hyperparameter(CS.CategoricalHyperparameter("op_node_3", ops_choices))
     cs.add_hyperparameter(CS.CategoricalHyperparameter("op_node_4", ops_choices))
 
-    cs.add_hyperparameter(CS.UniformIntegerHyperparameter("num_edges", 0, MAX_EDGES))
+    # cs.add_hyperparameter(CS.UniformIntegerHyperparameter("num_edges", 0, MAX_EDGES))
 
     for i in range(VERTICES * (VERTICES - 1) // 2):
       cs.add_hyperparameter(CS.CategoricalHyperparameter("edge_%d" % i, [0,1]))

@@ -6,6 +6,7 @@ from lib.spec import Spec
 from datetime import datetime
 import json
 import os
+import random
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -27,6 +28,24 @@ class Model(object):
     def __str__(self):
         """Prints a readable version of this bitstring."""
         return str(self.arch)
+
+    def __eq__(self, other):
+        return self.accuracy == other.accuracy
+    
+    def __le__(self, other):
+        return self.accuracy <= other.accuracy
+
+    def __lt__(self, other):
+        return self.accuracy < other.accuracy
+    
+    def __ge__(self, other):
+        return self.accuracy >= other.accuracy
+
+    def __gt__(self, other):
+        return self.accuracy > other.accuracy
+
+    def cmp(self, other):
+        return (self.accuracy > other.accuracy) - (self.accuracy < other.accuracy)
     
     def get_dict(self):
         return {
@@ -42,31 +61,39 @@ class NasBase(object):
         self.best_model = []
         self.history = []
 
-    def train_and_eval(self, model: Model):
+    def train_and_eval(self, model: Model, dry_run = False):
         spec = Spec(model.arch)
         if spec.valid_spec == False:
             model.accuracy = -1
+            self.history.append(model)
             return model
 
-        try:
-            net = NModel(spec)
-            net.build()
-            data = net.train_and_evaluate()
-        except Exception as ex:
-            print(ex)
-            model.accuracy = -1
-            return model
+        if dry_run:
+            data = {
+                "training_time": random.random() * 10000,
+                "validation_accuracy": random.random()
+            }
+        else:
+            try:
+                net = NModel(spec)
+                net.build()
+                data = net.train_and_evaluate()
+            except Exception as ex:
+                print(ex)
+                model.accuracy = -1
+                self.history.append(model)
+                return model
 
         self.times.append(self.times[-1] + data["training_time"])
         model.data = data
         model.accuracy = self.calc_accuracy(data)
 
-        self.history.append(model)
-        if len(self.best_model) == 0 or model.accuracy > self.best_model[-1].accuracy :
+        if len(self.best_model) == 0 or model.cmp(self.best_model[-1]) == 1 :
             self.best_model.append(model)
         else:
             self.best_model.append(self.best_model[-1])
         
+        self.history.append(model)
         return model
 
     def calc_accuracy(self, data):

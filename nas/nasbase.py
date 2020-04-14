@@ -44,9 +44,6 @@ class Model(object):
     def __gt__(self, other):
         return self.accuracy > other.accuracy
 
-    def cmp(self, other):
-        return (self.accuracy > other.accuracy) - (self.accuracy < other.accuracy)
-    
     def get_dict(self):
         return {
             "arch": self.arch.get_dictionary(),
@@ -88,7 +85,7 @@ class NasBase(object):
         model.data = data
         model.accuracy = self.calc_accuracy(data)
 
-        if len(self.best_model) == 0 or model.cmp(self.best_model[-1]) == 1 :
+        if len(self.best_model) == 0 or model.gt(self.best_model[-1]) :
             self.best_model.append(model)
         else:
             self.best_model.append(self.best_model[-1])

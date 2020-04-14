@@ -136,7 +136,7 @@ args = parser.parse_args()
 output_path = os.path.join(args.output_path, "genetic_algorithm")
 if len(args.run_id) == 0:
     now = datetime.now()
-    date_time = now.strftime("%Y%m%d%H%M%S")
+    date_time = now.strftime("%Y%m%d_%H%M%S")
     output_path = os.path.join(output_path, date_time)
 else:
     output_path = os.path.join(output_path, str(args.run_id))

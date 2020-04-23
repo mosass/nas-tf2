@@ -136,7 +136,7 @@ parser.add_argument('--mutation_rate', default=0.5, type=float, nargs='?', help=
 
 args = parser.parse_args()
 
-output_path = os.path.join(args.output_path, "genetic_algorithm")
+output_path = os.path.join(args.output_path, "genetic_algorithm_a")
 if len(args.run_id) == 0:
     now = datetime.now()
     date_time = now.strftime("%Y%m%d_%H%M%S")

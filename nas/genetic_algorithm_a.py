@@ -70,7 +70,7 @@ def selection(population, sample_size):
     ind = np.random.choice(range(n), sample_size, replace=False, p=prop)
     sample = list(pop[i] for i in ind)
 
-    ind = np.random.choice(range(sample), 2, replace=False)
+    ind = np.random.choice(sample_size, 2, replace=False)
     return list(sample[i] for i in ind)
 
 def genetic_algorithm_a(cycles, population_size, sample_size, crossover_rate, mutation_rate, output_path):
@@ -96,7 +96,7 @@ def genetic_algorithm_a(cycles, population_size, sample_size, crossover_rate, mu
         # crossover
         while len(offsprings) < population_size:
             if random.random() < float(crossover_rate):
-                parents = selection(population)
+                parents = selection(population, sample_size)
                 child_arch = crossover(parents[0].arch, parents[1].arch)
 
                 # mutation

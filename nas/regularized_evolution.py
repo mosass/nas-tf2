@@ -119,7 +119,7 @@ parser.add_argument('--run_id', default="", type=str, nargs='?', help='unique id
 parser.add_argument('--n_iters', default=100, type=int, nargs='?', help='number of iterations for optimization method')
 parser.add_argument('--output_path', default="./out", type=str, nargs='?',
                     help='specifies the path where the results will be saved')
-parser.add_argument('--pop_size', default=50, type=int, nargs='?', help='population size')
+parser.add_argument('--pop_size', default=20, type=int, nargs='?', help='population size')
 parser.add_argument('--sample_size', default=10, type=int, nargs='?', help='sample_size')
 
 

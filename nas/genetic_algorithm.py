@@ -62,7 +62,10 @@ def crossover(parent_a_arch, parent_b_arch):
     return child_arch
 
 def selection(population):
-    pop = sorted(population)
+    sort = sorted(population)
+    pop = list(sort[i] for i in range(len(sort) - 4, len(sort)))
+    pop.append(population[0])
+    pop = sorted(pop)
     n = len(pop)
     r = list((map(float, range(1,n+1))))
     s = float(sum(r))
@@ -81,8 +84,9 @@ def genetic_algorithm(cycles, population_size, crossover_rate, mutation_rate, ou
     while len(population) < population_size:
         model = Model()
         model.arch = random_architecture()
-        nas.train_and_eval(model)
+        nas.train_and_eval(model, dry_run=dryRun)
         population.append(model)
+        print('history size %d' % len(nas.history))
 
         if len(population) % 5 == 0:
             print('generation %d' % g)
@@ -103,19 +107,25 @@ def genetic_algorithm(cycles, population_size, crossover_rate, mutation_rate, ou
 
                 child = Model()
                 child.arch = child_arch
-                nas.train_and_eval(child)
+                nas.train_and_eval(child, dry_run=dryRun)
                 offsprings.append(child)
 
+                print('history size %d' % len(nas.history))
                 print('generation %d' % g)
                 nas.save_state(output_path, g)
             else:
                 break
         
         # evolve
+        print('evolve.....')
+        print('offsprings size %d' % len(offsprings))
         pop_new = sorted(population)
         pop_new = pop_new[len(offsprings):]
         for o in offsprings:
             pop_new.append(o)
+
+        population = sorted(pop_new)
+        offsprings = collections.deque()
     
     return nas.history
 
@@ -126,9 +136,11 @@ parser.add_argument('--run_id', default="", type=str, nargs='?', help='unique id
 parser.add_argument('--n_iters', default=100, type=int, nargs='?', help='number of iterations for optimization method')
 parser.add_argument('--output_path', default="./out", type=str, nargs='?',
                     help='specifies the path where the results will be saved')
-parser.add_argument('--pop_size', default=20, type=int, nargs='?', help='population size')
-parser.add_argument('--crossover_rate', default=0.5, type=float, nargs='?', help='crossover_rate')
+parser.add_argument('--pop_size', default=10, type=int, nargs='?', help='population size')
+parser.add_argument('--crossover_rate', default=0.8, type=float, nargs='?', help='crossover_rate')
 parser.add_argument('--mutation_rate', default=0.5, type=float, nargs='?', help='mutation_rate')
+
+dryRun = False
 
 
 args = parser.parse_args()

@@ -137,7 +137,7 @@ parser.add_argument('--n_iters', default=100, type=int, nargs='?', help='number 
 parser.add_argument('--output_path', default="./out", type=str, nargs='?',
                     help='specifies the path where the results will be saved')
 parser.add_argument('--pop_size', default=10, type=int, nargs='?', help='population size')
-parser.add_argument('--crossover_rate', default=0.8, type=float, nargs='?', help='crossover_rate')
+parser.add_argument('--crossover_rate', default=1.0, type=float, nargs='?', help='crossover_rate')
 parser.add_argument('--mutation_rate', default=0.5, type=float, nargs='?', help='mutation_rate')
 
 dryRun = False

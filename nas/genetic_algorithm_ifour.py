@@ -160,7 +160,7 @@ def genetic_algorithm(cycles, population_size, crossover_rate, mutation_rate, ou
         
         print('zzz complete generation %d' % g)
         # migrate
-        if g in [4,12]:
+        if g in [3,9]:
             print('zzz migrate 1 <-> 2, 3 <-> 4')
             best1 = population1[len(population1) - 1]
             best2 = population2[len(population2) - 1]
@@ -180,7 +180,7 @@ def genetic_algorithm(cycles, population_size, crossover_rate, mutation_rate, ou
             population4.append(best3)
 
         # migrate
-        if g in [8, 16]:
+        if g in [6, 12]:
             print('zzz migrate 1 <-> 3, 2 <-> 4')
             best1 = population1[len(population1) - 1]
             best2 = population2[len(population2) - 1]
@@ -206,7 +206,7 @@ def genetic_algorithm(cycles, population_size, crossover_rate, mutation_rate, ou
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--run_id', default="", type=str, nargs='?', help='unique id to identify this run')
-parser.add_argument('--n_iters', default=200, type=int, nargs='?', help='number of iterations for optimization method')
+parser.add_argument('--n_iters', default=150, type=int, nargs='?', help='number of iterations for optimization method')
 parser.add_argument('--output_path', default="./out", type=str, nargs='?',
                     help='specifies the path where the results will be saved')
 parser.add_argument('--pop_size', default=10, type=int, nargs='?', help='population size')

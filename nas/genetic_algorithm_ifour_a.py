@@ -190,7 +190,7 @@ parser.add_argument('--pop_size', default=10, type=int, nargs='?', help='populat
 parser.add_argument('--crossover_rate', default=1.0, type=float, nargs='?', help='crossover_rate')
 parser.add_argument('--mutation_rate', default=0.5, type=float, nargs='?', help='mutation_rate')
 
-dryRun = True
+dryRun = False
 
 
 args = parser.parse_args()

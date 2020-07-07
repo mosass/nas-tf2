@@ -110,13 +110,13 @@ def g_eval(population, nas, output_path, population_size, crossover_rate, mutati
     
     # evolve
     print('evolve.....')
-    print('offsprings-%d  size %d' % (gen, len(offsprings)))
+    print('offsprings-%d size %d' % (gen, len(offsprings)))
     pop_new = sorted(population)
     pop_new = pop_new[len(offsprings):]
     for o in offsprings:
         pop_new.append(o)
     
-    return sorted(pop_new), offsprings
+    return sorted(pop_new)
 
 def genetic_algorithm(cycles, population_size, crossover_rate, mutation_rate, output_path):
     output_path1 = os.path.join(output_path, "is1")
@@ -132,10 +132,7 @@ def genetic_algorithm(cycles, population_size, crossover_rate, mutation_rate, ou
     population2 = collections.deque()
     population3 = collections.deque()
     population4 = collections.deque()
-    offsprings1 = collections.deque()
-    offsprings2 = collections.deque()
-    offsprings3 = collections.deque()
-    offsprings4 = collections.deque()
+
     g = 1
     nas1 = NasBase()
     nas2 = NasBase()
@@ -153,72 +150,52 @@ def genetic_algorithm(cycles, population_size, crossover_rate, mutation_rate, ou
     
         g += 1
         # crossover
-        population1, offsprings1 = g_eval(population1, nas1, output_path1, population_size, crossover_rate, mutation_rate, 1, g)
-        population2, offsprings2 = g_eval(population2, nas2, output_path2, population_size, crossover_rate, mutation_rate, 2, g)
-        population3, offsprings3 = g_eval(population3, nas3, output_path3, population_size, crossover_rate, mutation_rate, 3, g)
-        population4, offsprings4 = g_eval(population4, nas4, output_path4, population_size, crossover_rate, mutation_rate, 4, g)
+        population1 = g_eval(population1, nas1, output_path1, population_size, crossover_rate, mutation_rate, 1, g)
+        population2 = g_eval(population2, nas2, output_path2, population_size, crossover_rate, mutation_rate, 2, g)
+        population3 = g_eval(population3, nas3, output_path3, population_size, crossover_rate, mutation_rate, 3, g)
+        population4 = g_eval(population4, nas4, output_path4, population_size, crossover_rate, mutation_rate, 4, g)
         
         print('zzz complete generation %d' % g)
         # migrate
-        if g in [3,9]:
-            print('zzz migrate 1 <-> 2, 3 <-> 4')
-            best1 = population1[len(population1) - 1]
-            best2 = population2[len(population2) - 1]
+        if g % 10 == 0:
+            print('zzz migrate all')
+            best = []
+            best.append(population1[len(population1) - 1])
+            best.append(population2[len(population2) - 1])
+            best.append(population3[len(population3) - 1])
+            best.append(population4[len(population4) - 1])
 
-            best3 = population3[len(population3) - 1]
-            best4 = population4[len(population4) - 1]
+            for i in range(4):
+                population1.pop(int(random.random() * (len(population1) - 1)))
+                population2.pop(int(random.random() * (len(population2) - 1)))
+                population3.pop(int(random.random() * (len(population3) - 1)))
+                population4.pop(int(random.random() * (len(population4) - 1)))
 
-            population1.pop(int(random.random() * (len(population1) - 1)))
-            population2.pop(int(random.random() * (len(population2) - 1)))
-            population3.pop(int(random.random() * (len(population3) - 1)))
-            population4.pop(int(random.random() * (len(population4) - 1)))
+            for i in range(len(best)):
+                population1.append(best[i])
+                population2.append(best[i])
+                population3.append(best[i])
+                population4.append(best[i])
 
-            population1.append(best2)
-            population2.append(best1)
-
-            population3.append(best4)
-            population4.append(best3)
-
-        # migrate
-        if g in [6, 12]:
-            print('zzz migrate 1 <-> 3, 2 <-> 4')
-            best1 = population1[len(population1) - 1]
-            best2 = population2[len(population2) - 1]
-
-            best3 = population3[len(population3) - 1]
-            best4 = population4[len(population4) - 1]
-
-            population1.pop(int(random.random() * (len(population1) - 1)))
-            population2.pop(int(random.random() * (len(population2) - 1)))
-            population3.pop(int(random.random() * (len(population3) - 1)))
-            population4.pop(int(random.random() * (len(population4) - 1)))
-
-            population1.append(best3)
-            population3.append(best1)
-
-            population2.append(best4)
-            population4.append(best2)
-
-
-    return [nas1.history, nas2.history]
+    return []
 
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--run_id', default="", type=str, nargs='?', help='unique id to identify this run')
-parser.add_argument('--n_iters', default=150, type=int, nargs='?', help='number of iterations for optimization method')
+parser.add_argument('--n_iters', default=250, type=int, nargs='?', help='number of iterations for optimization method')
 parser.add_argument('--output_path', default="./out", type=str, nargs='?',
                     help='specifies the path where the results will be saved')
 parser.add_argument('--pop_size', default=10, type=int, nargs='?', help='population size')
 parser.add_argument('--crossover_rate', default=1.0, type=float, nargs='?', help='crossover_rate')
 parser.add_argument('--mutation_rate', default=0.5, type=float, nargs='?', help='mutation_rate')
 
-dryRun = False
+dryRun = True
 
 
 args = parser.parse_args()
 
-output_path = os.path.join(args.output_path, "genetic_algorithm_ifour")
+output_path = os.path.join(args.output_path, "genetic_algorithm_ifour_a")
 if len(args.run_id) == 0:
     now = datetime.now()
     date_time = now.strftime("%Y%m%d_%H%M%S")

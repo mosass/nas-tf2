@@ -140,7 +140,6 @@ def g_load(nas, output_path, population_size, isl):
         cs = Spec.get_configuration_space()
         arch = cs.sample_configuration()
 
-        print(hist[i]['arch'])
         for k,v in hist[i]['arch'].items():
             arch[k] = v
 
@@ -158,7 +157,7 @@ def g_load(nas, output_path, population_size, isl):
     population = nas.history[-10:]
     population = sorted(population)
 
-    return population, len(nas.history) % population_size
+    return population, int(len(nas.history) / population_size)
 
 def genetic_algorithm(cycles, population_size, crossover_rate, mutation_rate, output_path, from_path):
     if len(from_path) > 0:
@@ -185,11 +184,13 @@ def genetic_algorithm(cycles, population_size, crossover_rate, mutation_rate, ou
     nas4 = NasBase()
 
     if len(from_path) > 0:
+        print('reload history')
         population1, g = g_load(nas1, output_path1, population_size, 1)
         population2, g = g_load(nas2, output_path2, population_size, 2)
         population3, g = g_load(nas3, output_path3, population_size, 3)
         population4, g = g_load(nas4, output_path4, population_size, 4)
     else:
+        print('initial history')
         g_init(population1, nas1, output_path1, population_size, 1, g)
         g_init(population2, nas2, output_path2, population_size, 2, g)
         g_init(population3, nas3, output_path3, population_size, 3, g)

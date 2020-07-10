@@ -259,7 +259,7 @@ if len(args.run_id) == 0:
 else:
     output_path = os.path.join(output_path, str(args.run_id))
 
-os.makedirs(os.path.join(output_path), exist_ok=True)
+# os.makedirs(os.path.join(output_path), exist_ok=True)
 
 history = genetic_algorithm(
     cycles=args.n_iters,

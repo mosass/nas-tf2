@@ -4,6 +4,8 @@ import os
 import random
 from copy import deepcopy
 import operator
+import glob
+import json
 
 import ConfigSpace
 import numpy as np
@@ -69,7 +71,7 @@ def selection(population):
     n = len(pop)
     r = list((map(float, range(1,n+1))))
     s = float(sum(r))
-    prop = [(p/s) for p in r]
+    # prop = [(p/s) for p in r]
     # ind = np.random.choice(range(n), 2, replace=False, p=prop)
     ind = np.random.choice(range(n), 2, replace=False)
     return list(pop[i] for i in ind)
@@ -110,15 +112,57 @@ def g_eval(population, nas, output_path, population_size, crossover_rate, mutati
     
     # evolve
     print('evolve.....')
-    print('offsprings-%d  size %d' % (gen, len(offsprings)))
+    print('offsprings-%d size %d' % (gen, len(offsprings)))
     pop_new = sorted(population)
     pop_new = pop_new[len(offsprings):]
     for o in offsprings:
         pop_new.append(o)
     
-    return sorted(pop_new), offsprings
+    return sorted(pop_new)
 
-def genetic_algorithm(cycles, population_size, crossover_rate, mutation_rate, output_path):
+def g_load(nas, output_path, population_size, isl):
+    hist_files = glob.glob(output_path+'/his*')
+    hist_fd = max(hist_files, key=os.path.getctime)
+    # state_files = glob.glob(output_path+'/state*')
+    # state_fd = max(state_files, key=os.path.getctime)
+
+    histfp = open(hist_fd, 'r')
+    hist = json.load(histfp)
+
+    # statefp = open(state_fd, 'r')
+    # state = json.load(statefp)
+
+    for i in range(len(hist)):
+        model = Model()
+        model.accuracy = hist[i]['accuracy']
+        model.data = hist[i]['data']
+
+        cs = Spec.get_configuration_space()
+        arch = cs.sample_configuration()
+
+        for k,v in hist[i]['arch'].items():
+            arch[k] = v
+
+        model.arch = arch
+        
+        nas.history.append(model)
+    
+    # for i in range(len(state)):
+    #     model = Model()
+    #     model.accuracy = state[i]['accuracy']
+    #     model.arch = state[i]['arch']
+    #     model.data = state[i]['data']
+    #     nas.best_model.append(model)
+
+    population = nas.history[-10:]
+    population = sorted(population)
+
+    return population, int(len(nas.history) / population_size)
+
+def genetic_algorithm(cycles, population_size, crossover_rate, mutation_rate, output_path, from_path):
+    if len(from_path) > 0:
+        output_path = from_path
+
     output_path1 = os.path.join(output_path, "is1")
     output_path2 = os.path.join(output_path, "is2")
     output_path3 = os.path.join(output_path, "is3")
@@ -132,20 +176,25 @@ def genetic_algorithm(cycles, population_size, crossover_rate, mutation_rate, ou
     population2 = collections.deque()
     population3 = collections.deque()
     population4 = collections.deque()
-    offsprings1 = collections.deque()
-    offsprings2 = collections.deque()
-    offsprings3 = collections.deque()
-    offsprings4 = collections.deque()
+
     g = 1
     nas1 = NasBase()
     nas2 = NasBase()
     nas3 = NasBase()
     nas4 = NasBase()
 
-    g_init(population1, nas1, output_path1, population_size, 1, g)
-    g_init(population2, nas2, output_path2, population_size, 2, g)
-    g_init(population3, nas3, output_path3, population_size, 3, g)
-    g_init(population4, nas4, output_path4, population_size, 4, g)
+    if len(from_path) > 0:
+        print('reload history')
+        population1, g = g_load(nas1, output_path1, population_size, 1)
+        population2, g = g_load(nas2, output_path2, population_size, 2)
+        population3, g = g_load(nas3, output_path3, population_size, 3)
+        population4, g = g_load(nas4, output_path4, population_size, 4)
+    else:
+        print('initial history')
+        g_init(population1, nas1, output_path1, population_size, 1, g)
+        g_init(population2, nas2, output_path2, population_size, 2, g)
+        g_init(population3, nas3, output_path3, population_size, 3, g)
+        g_init(population4, nas4, output_path4, population_size, 4, g)
 
     print('zzz complete generation %d' % g)
 
@@ -153,10 +202,15 @@ def genetic_algorithm(cycles, population_size, crossover_rate, mutation_rate, ou
     
         g += 1
         # crossover
-        population1, offsprings1 = g_eval(population1, nas1, output_path1, population_size, crossover_rate, mutation_rate, 1, g)
-        population2, offsprings2 = g_eval(population2, nas2, output_path2, population_size, crossover_rate, mutation_rate, 2, g)
-        population3, offsprings3 = g_eval(population3, nas3, output_path3, population_size, crossover_rate, mutation_rate, 3, g)
-        population4, offsprings4 = g_eval(population4, nas4, output_path4, population_size, crossover_rate, mutation_rate, 4, g)
+        if int(len(nas1.history) / population_size) < g:
+            population1 = g_eval(population1, nas1, output_path1, population_size, crossover_rate, mutation_rate, 1, g)
+        if int(len(nas2.history) / population_size) < g:
+            population2 = g_eval(population2, nas2, output_path2, population_size, crossover_rate, mutation_rate, 2, g)
+        if int(len(nas3.history) / population_size) < g:
+            population3 = g_eval(population3, nas3, output_path3, population_size, crossover_rate, mutation_rate, 3, g)
+        if int(len(nas4.history) / population_size) < g:
+            population4 = g_eval(population4, nas4, output_path4, population_size, crossover_rate, mutation_rate, 4, g)
+        
         
         print('zzz complete generation %d' % g)
         # migrate
@@ -199,8 +253,7 @@ def genetic_algorithm(cycles, population_size, crossover_rate, mutation_rate, ou
             population2.append(best4)
             population4.append(best2)
 
-
-    return [nas1.history, nas2.history]
+    return []
 
 
 
@@ -226,11 +279,12 @@ if len(args.run_id) == 0:
 else:
     output_path = os.path.join(output_path, str(args.run_id))
 
-os.makedirs(os.path.join(output_path), exist_ok=True)
+# os.makedirs(os.path.join(output_path), exist_ok=True)
 
 history = genetic_algorithm(
     cycles=args.n_iters,
     population_size=args.pop_size,
     crossover_rate=args.crossover_rate,
     mutation_rate=args.mutation_rate,
-    output_path=output_path)
+    output_path=output_path,
+    from_path="./out/genetic_algorithm_ifour/20200706_175506")

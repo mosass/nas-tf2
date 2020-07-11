@@ -198,6 +198,8 @@ def genetic_algorithm(cycles, population_size, crossover_rate, mutation_rate, ou
 
     print('zzz complete generation %d' % g)
 
+    g -= 1
+
     while len(nas1.history) < cycles and len(nas2.history) < cycles and len(nas3.history) < cycles and len(nas4.history) < cycles:
     
         g += 1

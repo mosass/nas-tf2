@@ -57,6 +57,7 @@ class NasBase(object):
         self.times = [0.0]
         self.best_model = []
         self.history = []
+        self.pop_history = []
 
     def train_and_eval(self, model: Model, dry_run = False):
         spec = Spec(model.arch)
@@ -96,23 +97,23 @@ class NasBase(object):
     def calc_accuracy(self, data):
         return -1 + data["validation_accuracy"]
 
-    def save_state(self, output_path, state_id):
+    def save_state(self, output_path, state_id, pop):
         now = datetime.now()
         date_time = now.strftime("%Y%m%d%H%M%S")
         self.save_file_his(output_path, state_id, date_time)
-        self.save_file_state(output_path, state_id, date_time)
+        self.save_file_his_pop(output_path, state_id, date_time, pop)
 
     def save_file_his(self, output_path, idx, timestamp):
         ls_his = [m.get_dict() for m in self.history]
-        fh = open(os.path.join(output_path, 'his_%s_%s.json' % (idx, timestamp)), 'w')
+        fh = open(os.path.join(output_path, 'history.json'), 'w')
         json.dump(ls_his, fh, cls=NpEncoder)
         fh.close()
 
-    def save_file_state(self, output_path, idx, timestamp):
-        ls_state = {
-            "times": self.times,
-            "best_model": [m.get_dict() for m in self.best_model]
-        }
-        fh = open(os.path.join(output_path, 'state_%s_%s.json' % (idx, timestamp)), 'w')
+    def save_file_his_pop(self, output_path, idx, timestamp, pop):
+        for p in pop:
+            self.pop_history.append(p)
+            
+        ls_state = [m.get_dict() for m in self.pop_history]
+        fh = open(os.path.join(output_path, 'state_history.json'), 'w')
         json.dump(ls_state, fh, cls=NpEncoder)
         fh.close()

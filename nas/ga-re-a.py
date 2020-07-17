@@ -266,7 +266,7 @@ def ga_re_a(cycles, population_size, crossover_rate, mutation_rate, output_path,
         
         print('zzz complete generation %d' % g)
         # migrate
-        if g in [3,6,9,12]:
+        if g % 3 == 0:
             print('zzz migrate ring GA')
 
             best1 = max(population1)
@@ -279,8 +279,6 @@ def ga_re_a(cycles, population_size, crossover_rate, mutation_rate, output_path,
             for i in range(2):
                 population1.pop(int(random.random() * (len(population1) - 1)))
                 population2.pop(int(random.random() * (len(population2) - 1)))
-
-                print(int(random.random() * (len(population3) - 1)))
                 population3.pop(int(random.random() * (len(population3) - 1)))
                 population4.pop(int(random.random() * (len(population4) - 1)))
                 population5.pop(int(random.random() * (len(population5) - 1)))
@@ -299,40 +297,41 @@ def ga_re_a(cycles, population_size, crossover_rate, mutation_rate, output_path,
             population4.append(best2)
             population5.append(best4)
 
-            print('zzz migrate GA - RE')
-            if g in [3,9]:
-               population1.append(best3) 
-               population2.append(best3) 
-               population3.append(best1)
-               population3.append(best2)
+            if int(g / 3) % 2 == 0:
+                print('zzz migrate GA - RE a')
+                population1.append(best3) 
+                population2.append(best3) 
+                population3.append(best1)
+                population3.append(best2)
 
-               population4.append(best6) 
-               population5.append(best6) 
-               population6.append(best4)
-               population6.append(best5)
+                population4.append(best6) 
+                population5.append(best6) 
+                population6.append(best4)
+                population6.append(best5)
 
-            if g in [6, 12]:
-               population1.append(best6) 
-               population2.append(best6) 
-               population6.append(best1)
-               population6.append(best2)
+            if int(g / 3) % 2 == 1:
+                print('zzz migrate GA - RE b')
+                population1.append(best6) 
+                population2.append(best6) 
+                population6.append(best1)
+                population6.append(best2)
 
-               population4.append(best3) 
-               population5.append(best3) 
-               population3.append(best4)
-               population3.append(best5)
+                population4.append(best3) 
+                population5.append(best3) 
+                population3.append(best4)
+                population3.append(best5)
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--run_id', default="", type=str, nargs='?', help='unique id to identify this run')
-parser.add_argument('--n_iters', default=260, type=int, nargs='?', help='number of iterations for optimization method')
+parser.add_argument('--n_iters', default=150, type=int, nargs='?', help='number of iterations for optimization method')
 parser.add_argument('--output_path', default="./out", type=str, nargs='?',
                     help='specifies the path where the results will be saved')
 parser.add_argument('--pop_size', default=10, type=int, nargs='?', help='population size')
 parser.add_argument('--crossover_rate', default=0.9, type=float, nargs='?', help='crossover_rate')
 parser.add_argument('--mutation_rate', default=0.5, type=float, nargs='?', help='mutation_rate')
 
-dryRun = True
+dryRun = False
 
 
 args = parser.parse_args()
@@ -353,7 +352,8 @@ ga_re_a(
     crossover_rate=args.crossover_rate,
     mutation_rate=args.mutation_rate,
     output_path=output_path,
-    from_path="./out/ga-re-a/20200717_180241")
+    # from_path="")
+    from_path="./out/ga-re-a/20200717_183326")
 
 
 # population = collections.deque()

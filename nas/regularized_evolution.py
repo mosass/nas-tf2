@@ -76,12 +76,13 @@ def regularized_evolution(cycles, population_size, sample_size, output_path):
     while len(population) < population_size:
         model = Model()
         model.arch = random_architecture()
-        nas.train_and_eval(model)
+        nas.train_and_eval(model, dry_run=dryRun)
         population.append(model)
 
         if len(population) % 5 == 0:
             print("cycle %d" % c)
-            nas.save_state(output_path, c)
+
+    nas.save_state(output_path, c, population)
 
     # Carry out evolution in cycles. Each cycle produces a model and removes
     # another.
@@ -101,7 +102,7 @@ def regularized_evolution(cycles, population_size, sample_size, output_path):
         # Create the child model and store it.
         child = Model()
         child.arch = mutate_arch(parent.arch)
-        nas.train_and_eval(child)
+        nas.train_and_eval(child, dry_run=dryRun)
         population.append(child)
 
         # Remove the oldest model.
@@ -109,14 +110,14 @@ def regularized_evolution(cycles, population_size, sample_size, output_path):
 
         c += 1
         print("cycle %d" % c)
-        nas.save_state(output_path, c)
+        nas.save_state(output_path, c, population)
 
     return nas.history
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--run_id', default="", type=str, nargs='?', help='unique id to identify this run')
-parser.add_argument('--n_iters', default=100, type=int, nargs='?', help='number of iterations for optimization method')
+parser.add_argument('--n_iters', default=200, type=int, nargs='?', help='number of iterations for optimization method')
 parser.add_argument('--output_path', default="./out", type=str, nargs='?',
                     help='specifies the path where the results will be saved')
 parser.add_argument('--pop_size', default=10, type=int, nargs='?', help='population size')
@@ -125,7 +126,7 @@ parser.add_argument('--sample_size', default=5, type=int, nargs='?', help='sampl
 
 args = parser.parse_args()
 
-output_path = os.path.join(args.output_path, "regularized_evolution")
+output_path = os.path.join(args.output_path, "re")
 if len(args.run_id) == 0:
     now = datetime.now()
     date_time = now.strftime("%Y%m%d_%H%M%S")
@@ -134,6 +135,8 @@ else:
     output_path = os.path.join(output_path, str(args.run_id))
 
 os.makedirs(os.path.join(output_path), exist_ok=True)
+
+dryRun = False
 
 history = regularized_evolution(
     cycles=args.n_iters, population_size=args.pop_size, sample_size=args.sample_size,

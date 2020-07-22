@@ -340,8 +340,8 @@ ga_re_a(
     crossover_rate=args.crossover_rate,
     mutation_rate=args.mutation_rate,
     output_path=output_path,
-    from_path="")
-    # from_path="./out/ga-re-b/...")
+    # from_path="")
+    from_path="./out/ga-re-b/20200719_174625")
 
 
 # population = collections.deque()

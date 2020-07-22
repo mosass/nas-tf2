@@ -24,6 +24,8 @@ class Model(object):
         self.arch = None
         self.data = None
         self.accuracy = None
+        self.name = None
+        self.name_his = None
 
     def __str__(self):
         """Prints a readable version of this bitstring."""
@@ -45,11 +47,21 @@ class Model(object):
         return self.accuracy > other.accuracy
 
     def get_dict(self):
-        return {
-            "arch": self.arch.get_dictionary(),
-            "accuracy": self.accuracy,
-            "data": self.data
-        }
+        if self.name == None:
+            return {
+                "arch": self.arch.get_dictionary(),
+                "accuracy": self.accuracy,
+                "data": self.data
+            }
+        else:
+            return {
+                "name": self.name,
+                "name_his": self.name_his,
+                "arch": self.arch.get_dictionary(),
+                "accuracy": self.accuracy,
+                "data": self.data
+            }
+
 
 class NasBase(object):
 

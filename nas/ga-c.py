@@ -286,7 +286,7 @@ else:
 
 # os.makedirs(os.path.join(output_path), exist_ok=True)
 
-dryRun = True
+dryRun = False
 
 ga_c(
     cycles=args.n_iters,

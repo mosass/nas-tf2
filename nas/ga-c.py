@@ -292,8 +292,8 @@ ga_c(
     cycles=args.n_iters,
     population_size=args.pop_size,
     output_path=output_path,
-    from_path="")
-    # from_path="./out/ga-re-b/20200719_174625")
+    # from_path="")
+    from_path="./out/ga-c/20200722_081533")
 
 
 # population = collections.deque()

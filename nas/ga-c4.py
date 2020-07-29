@@ -166,6 +166,8 @@ def load(nas, output_path, population_size, isl):
         model = Model()
         model.accuracy = hist[i]['accuracy']
         model.data = hist[i]['data']
+        model.name = hist[i]['name']
+        model.name_his = hist[i]['name_his']
 
         cs = Spec.get_configuration_space()
         arch = cs.sample_configuration()
@@ -301,8 +303,8 @@ ga_c(
     cycles=args.n_iters,
     population_size=args.pop_size,
     output_path=output_path,
-    from_path="")
-    # from_path="./out/ga-c/20200722_081533")
+    # from_path="")
+    from_path="./out/ga-c4/20200728_032627")
 
 
 # population = collections.deque()

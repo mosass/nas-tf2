@@ -2,6 +2,9 @@ import ConfigSpace as CS
 import ConfigSpace.hyperparameters as CSH
 import numpy as np
 import copy
+import json
+
+import graphviz
 
 MAX_EDGES=9
 VERTICES=7
@@ -25,6 +28,16 @@ class Spec(object):
       cs.add_hyperparameter(CS.CategoricalHyperparameter("edge_%d" % i, [0,1]))
 
     return cs
+
+  @staticmethod
+  def get_spec_from_json(json_str):
+    cs = Spec.get_configuration_space()
+    arch = cs.sample_configuration()  
+
+    json_spec = json.loads(json_str)
+    for k,v in json_spec.items():
+        arch[k] = v
+    return arch
 
   def __init__(self, config: CS.Configuration):
     matrix = np.zeros([VERTICES, VERTICES], dtype=np.int8)
@@ -98,6 +111,22 @@ class Spec(object):
 
     if np.sum(self.matrix) > MAX_EDGES:
       self.valid_spec = False
+  
+  def visualize(self):
+    """Creates a dot graph. Can be visualized in colab directly."""
+    num_vertices = np.shape(self.matrix)[0]
+    g = graphviz.Digraph()
+    g.node(str(0), 'input')
+    for v in range(1, num_vertices - 1):
+      g.node(str(v), self.ops[v])
+    g.node(str(num_vertices - 1), 'output')
+
+    for src in range(num_vertices - 1):
+      for dst in range(src + 1, num_vertices):
+        if self.matrix[src, dst]:
+          g.edge(str(src), str(dst))
+
+    return g
 
 if __name__ == "__main__":
     config = Spec.get_configuration_space().sample_configuration()

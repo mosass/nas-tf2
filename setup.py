@@ -7,6 +7,7 @@ requires = [
     'numpy',
     'tensorflow',
     'ConfigSpace',
+    'graphviz',
 ]
 
 setup(name='nas-tf2',

@@ -42,7 +42,7 @@ def preprocess(data, mx):
         best.append(best_acc)
         cost.append(aggt_cost)
 
-    return cost, hist, best, best_arch
+    return cost, hist, best, best_arch, best_ever
 
 def plot_history(hist_files, report_path, mx, one_fig=False, name=''):
     plt.figure(figsize=(18, 5))
@@ -61,7 +61,10 @@ def plot_history(hist_files, report_path, mx, one_fig=False, name=''):
 
 
         history = get_data(hist_file)
-        cost, hist, best, best_arch = preprocess(history, 300)
+        cost, hist, best, best_arch, best_ever = preprocess(history, 300)
+        print(best_arch)
+        print(best_ever)
+        print()
 
         for h in hist:
             if(h < 0.63):

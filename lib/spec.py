@@ -114,17 +114,26 @@ class Spec(object):
   
   def visualize(self):
     """Creates a dot graph. Can be visualized in colab directly."""
+    ops_map = {
+      'conv1x1-bn-relu': '1x1 conv',
+      'conv3x3-bn-relu': '3x3 conv',
+      'maxpool3x3': '3x3 maxpool',
+    }
+
+
     num_vertices = np.shape(self.matrix)[0]
     g = graphviz.Digraph()
     g.node(str(0), 'input')
     for v in range(1, num_vertices - 1):
-      g.node(str(v), self.ops[v])
+      g.node(str(v), ops_map[self.ops[v]])
     g.node(str(num_vertices - 1), 'output')
 
     for src in range(num_vertices - 1):
       for dst in range(src + 1, num_vertices):
         if self.matrix[src, dst]:
           g.edge(str(src), str(dst))
+    
+    g.render(filename='g1.png')
 
     return g
 

@@ -75,3 +75,14 @@ Mutiple Cluster
 
 {"edge_0": 1, "edge_1": 1, "edge_2": 1, "edge_3": 0, "edge_4": 1, "edge_5": 0, "edge_6": 1, "edge_7": 1, "edge_8": 1, "edge_9": 1, "edge_10": 0, "edge_11": 0, "edge_12": 0, "edge_13": 0, "edge_14": 1, "edge_15": 0, "edge_16": 1, "edge_17": 1, "edge_18": 1, "edge_19": 0, "edge_20": 0, "op_node_0": "maxpool3x3", "op_node_1": "conv1x1-bn-relu", "op_node_2": "conv3x3-bn-relu", "op_node_3": "conv3x3-bn-relu", "op_node_4": "maxpool3x3"}
 0.6624000072479248
+
+
+
+[[0 0 0 1 1 1 0]
+ [0 0 0 1 0 1 1]
+ [0 0 0 1 0 1 1]
+ [0 0 0 0 0 1 0]
+ [0 0 0 0 0 0 1]
+ [0 0 0 0 0 0 1]
+ [0 0 0 0 0 0 0]]
+['input', 'conv1x1-bn-relu', 'conv1x1-bn-relu', 'maxpool3x3', 'conv1x1-bn-relu', 'conv3x3-bn-relu', 'output']

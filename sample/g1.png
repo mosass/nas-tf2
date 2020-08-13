@@ -1,0 +1,14 @@
+digraph {
+	0 [label=input]
+	1 [label="1x1 conv"]
+	2 [label="3x3 maxpool"]
+	3 [label="3x3 maxpool"]
+	4 [label=output]
+	0 -> 1
+	0 -> 2
+	0 -> 3
+	1 -> 2
+	1 -> 4
+	2 -> 4
+	3 -> 4
+}

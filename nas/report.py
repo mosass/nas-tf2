@@ -17,7 +17,7 @@ def get_data(file_path):
         else:
             accuracy = 0
             test_accuracy = 0
-            cost = 1000
+            cost = 200
             result.append((cost, accuracy, test_accuracy, arch))
 
     return result
@@ -28,6 +28,8 @@ def preprocess(data, mx):
     cost = [0.]
     best_arch = []
     best_ever = 0.
+    worst_arch = []
+    worst_ever = 1.
     aggt_cost = 0.
     best_acc = 0.
     for i in range(len(data)):
@@ -37,12 +39,17 @@ def preprocess(data, mx):
         acc = data[i][1]
         best_arch = data[i][3] if data[i][1] > best_ever else best_arch
         best_ever = data[i][1] if data[i][1] > best_ever else best_ever
+
+        if data[i][1] > 0:
+            worst_arch = data[i][3] if data[i][1] < worst_ever else worst_arch
+            worst_ever = data[i][1] if data[i][1] < worst_ever else worst_ever
+
         best_acc = data[i][1] if data[i][1] > best_acc else best_acc
         hist.append(acc)
         best.append(best_acc)
         cost.append(aggt_cost)
-
-    return cost, hist, best, best_arch, best_ever
+    
+    return cost, hist, best, best_arch, best_ever, worst_arch, worst_ever
 
 def plot_history(hist_files, report_path, mx, one_fig=False, name=''):
     plt.figure(figsize=(18, 5))
@@ -55,16 +62,22 @@ def plot_history(hist_files, report_path, mx, one_fig=False, name=''):
     ind = 1
 
     avgs = []
+
+    aggt_cost = 0.
     
     for hist_file, title in hist_files:
         # name = hist_file.replace('./data/', '').replace('/state_history.json', '').replace('/history.json', '')
 
 
         history = get_data(hist_file)
-        cost, hist, best, best_arch, best_ever = preprocess(history, 300)
-        print(best_arch)
-        print(best_ever)
+        cost, hist, best, best_arch, best_ever, worst_arch, worst_ever = preprocess(history, 100)
+        # print(best_arch)
+        # print(best_ever)
+        # print()
+        # print(worst_arch)
+        print(worst_ever)
         print()
+        aggt_cost += cost[len(cost)-1]
 
         for h in hist:
             if(h < 0.63):
@@ -95,7 +108,7 @@ def plot_history(hist_files, report_path, mx, one_fig=False, name=''):
         else:
             plt.text(50, (len(hist_files) - ind + 2) * 0.05, title +' Best = %.4f' % (max(hist)), style='italic', bbox={'facecolor': 'w', 'alpha': 0.5}, fontsize=17)
     
-    print("name %s average %.4f" % (name, sum(avgs)/len(avgs)))
+    print("name %s average %.4f, cost = %.2f" % (name, sum(avgs)/len(avgs), (aggt_cost/60)/60))
 
     plt.savefig(report_path, bbox_inches = 'tight', pad_inches = 0.2, dpi=300)
     # plt.show()

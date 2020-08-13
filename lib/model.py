@@ -4,6 +4,7 @@ from lib.cell import Cell
 import lib.base_ops as ops
 import numpy as np
 import time
+import os
 
 class Stack(object):
   def __init__(self, spec: Spec, inputs, name=""):
@@ -26,8 +27,22 @@ class Stack(object):
     return tensors
 
 class NModel(object):
-  def __init__(self, spec: Spec, name=""):
+  def __init__(self, spec: Spec, name="", checkpoint=""):
     super(NModel, self).__init__()
+
+    self.checkpoint = checkpoint
+
+    if len(self.checkpoint) > 0:
+      self.checkpoint_path = checkpoint+"/cp-{epoch:04d}.ckpt"
+      self.checkpoint_dir = os.path.dirname(self.checkpoint_path)
+
+      self.cp_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=self.checkpoint_path, 
+        verbose=1, 
+        save_weights_only=True,
+        period=5)
+
+
     self.name = name
     self.spec = spec
     self.inputs = tf.keras.Input(shape=(32, 32, 3))
@@ -53,11 +68,39 @@ class NModel(object):
 
     return self.model
   
-  def train_and_evaluate(self):
+  def load_checkpoint(self, ephocs):
+    latest = tf.train.latest_checkpoint(self.checkpoint_dir)
+    if not ephocs:
+      latest = self.checkpoint_path.format(epoch=ephocs)
+
+    self.model.load_weights(latest)
+  
+  def evaluate(self):
+    (train_validate_images, train_validate_labels), (test_images, test_labels) = tf.keras.datasets.cifar10.load_data()
+
+    train_images, validate_images = np.split(train_validate_images, [int(.8 * len(train_validate_images))])
+    train_labels, validate_labels = np.split(train_validate_labels, [int(.8 * len(train_validate_labels))])
+
+    train_images, validate_images, test_images = train_images / 255.0, validate_images / 255.0,test_images / 255.0
+
     optimizer = tf.keras.optimizers.RMSprop(
             learning_rate=tf.keras.experimental.CosineDecay(0.2, 256, alpha=0.0),
             momentum=0.9,
             epsilon=1.0)
+    # optimizer_sgd = tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.9)
+    self.model.compile(optimizer=optimizer,
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              metrics=['accuracy'])
+
+    evaluate = self.model.evaluate(test_images, test_labels)
+    return evaluate
+
+  def train_and_evaluate(self, batch_size=256, ephocs=12):
+    optimizer = tf.keras.optimizers.RMSprop(
+            learning_rate=tf.keras.experimental.CosineDecay(0.2, batch_size, alpha=0.0),
+            momentum=0.9,
+            epsilon=1.0)
+    # optimizer = tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.9)
     self.model.compile(optimizer=optimizer,
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
@@ -71,8 +114,18 @@ class NModel(object):
     
     time_his = TimeHistory()
     
-    history = self.model.fit(train_images, train_labels, epochs=12, batch_size=256,
-                  callbacks=[time_his],
+    cb = [time_his]
+    if len(self.checkpoint) > 0:
+      if not os.path.isdir(self.checkpoint):
+        self.model.save_weights(self.checkpoint_path.format(epoch=0))
+      else:
+        latest = tf.train.latest_checkpoint(self.checkpoint_dir)
+        self.model.load_weights(latest)
+
+      cb.append(self.cp_callback)
+
+    history = self.model.fit(train_images, train_labels, epochs=ephocs, batch_size=batch_size,
+                  callbacks=cb,
                   validation_data=(validate_images, validate_labels))
     evaluate = self.model.evaluate(test_images, test_labels)
 
